@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="dotlessj" format="2">
+  <advance width="182"/>
+  <outline>
+    <contour>
+      <point x="-45" y="-182"/>
+      <point x="91" y="-182"/>
+      <point x="91" y="-136"/>
+      <point x="136" y="-136"/>
+      <point x="136" y="500"/>
+      <point x="45" y="500"/>
+      <point x="45" y="-91"/>
+      <point x="-45" y="-91"/>
+    </contour>
+  </outline>
+</glyph>

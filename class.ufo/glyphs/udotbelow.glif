@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="udotbelow" format="2">
+  <advance width="545"/>
+  <outline>
+    <contour>
+      <point x="45" y="136"/>
+      <point x="91" y="136"/>
+      <point x="91" y="45"/>
+      <point x="136" y="45"/>
+      <point x="136" y="0"/>
+      <point x="364" y="0"/>
+      <point x="364" y="45"/>
+      <point x="409" y="45"/>
+      <point x="409" y="0"/>
+      <point x="500" y="0"/>
+      <point x="500" y="500"/>
+      <point x="409" y="500"/>
+      <point x="409" y="136"/>
+      <point x="364" y="136"/>
+      <point x="364" y="91"/>
+      <point x="182" y="91"/>
+      <point x="182" y="136"/>
+      <point x="136" y="136"/>
+      <point x="136" y="500"/>
+      <point x="45" y="500"/>
+    </contour>
+    <contour>
+      <point x="227" y="-227"/>
+      <point x="318" y="-227"/>
+      <point x="318" y="-91"/>
+      <point x="227" y="-91"/>
+    </contour>
+  </outline>
+</glyph>

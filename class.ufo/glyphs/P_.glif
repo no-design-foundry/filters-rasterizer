@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="P" format="2">
+  <advance width="591"/>
+  <unicode hex="0050"/>
+  <outline>
+    <contour>
+      <point x="45" y="0"/>
+      <point x="136" y="0"/>
+      <point x="136" y="227"/>
+      <point x="409" y="227"/>
+      <point x="409" y="273"/>
+      <point x="455" y="273"/>
+      <point x="455" y="318"/>
+      <point x="500" y="318"/>
+      <point x="500" y="364"/>
+      <point x="545" y="364"/>
+      <point x="545" y="591"/>
+      <point x="500" y="591"/>
+      <point x="500" y="636"/>
+      <point x="455" y="636"/>
+      <point x="455" y="682"/>
+      <point x="409" y="682"/>
+      <point x="409" y="727"/>
+      <point x="45" y="727"/>
+    </contour>
+    <contour>
+      <point x="136" y="636"/>
+      <point x="364" y="636"/>
+      <point x="364" y="591"/>
+      <point x="409" y="591"/>
+      <point x="409" y="545"/>
+      <point x="455" y="545"/>
+      <point x="455" y="409"/>
+      <point x="409" y="409"/>
+      <point x="409" y="364"/>
+      <point x="364" y="364"/>
+      <point x="364" y="318"/>
+      <point x="136" y="318"/>
+    </contour>
+  </outline>
+</glyph>

@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="dieresis.case" format="2">
+  <advance width="409"/>
+  <outline>
+    <contour>
+      <point x="45" y="773"/>
+      <point x="136" y="773"/>
+      <point x="136" y="909"/>
+      <point x="45" y="909"/>
+    </contour>
+    <contour>
+      <point x="273" y="773"/>
+      <point x="364" y="773"/>
+      <point x="364" y="909"/>
+      <point x="273" y="909"/>
+    </contour>
+  </outline>
+</glyph>

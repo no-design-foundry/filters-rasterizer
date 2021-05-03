@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="edieresis" format="2">
+  <advance width="545"/>
+  <unicode hex="00EB"/>
+  <outline>
+    <contour>
+      <point x="136" y="591"/>
+      <point x="227" y="591"/>
+      <point x="227" y="727"/>
+      <point x="136" y="727"/>
+    </contour>
+    <contour>
+      <point x="364" y="591"/>
+      <point x="455" y="591"/>
+      <point x="455" y="727"/>
+      <point x="364" y="727"/>
+    </contour>
+    <contour>
+      <point x="45" y="136"/>
+      <point x="91" y="136"/>
+      <point x="91" y="45"/>
+      <point x="182" y="45"/>
+      <point x="182" y="0"/>
+      <point x="364" y="0"/>
+      <point x="364" y="45"/>
+      <point x="455" y="45"/>
+      <point x="455" y="136"/>
+      <point x="500" y="136"/>
+      <point x="500" y="182"/>
+      <point x="409" y="182"/>
+      <point x="409" y="136"/>
+      <point x="364" y="136"/>
+      <point x="364" y="91"/>
+      <point x="182" y="91"/>
+      <point x="182" y="182"/>
+      <point x="136" y="182"/>
+      <point x="136" y="227"/>
+      <point x="500" y="227"/>
+      <point x="500" y="364"/>
+      <point x="455" y="364"/>
+      <point x="455" y="455"/>
+      <point x="364" y="455"/>
+      <point x="364" y="500"/>
+      <point x="182" y="500"/>
+      <point x="182" y="455"/>
+      <point x="91" y="455"/>
+      <point x="91" y="364"/>
+      <point x="45" y="364"/>
+    </contour>
+    <contour>
+      <point x="136" y="364"/>
+      <point x="182" y="364"/>
+      <point x="182" y="409"/>
+      <point x="364" y="409"/>
+      <point x="364" y="364"/>
+      <point x="409" y="364"/>
+      <point x="409" y="318"/>
+      <point x="136" y="318"/>
+    </contour>
+  </outline>
+</glyph>

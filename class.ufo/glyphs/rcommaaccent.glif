@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="rcommaaccent" format="2">
+  <advance width="318"/>
+  <outline>
+    <contour>
+      <point x="45" y="0"/>
+      <point x="136" y="0"/>
+      <point x="136" y="364"/>
+      <point x="182" y="364"/>
+      <point x="182" y="409"/>
+      <point x="318" y="409"/>
+      <point x="318" y="500"/>
+      <point x="182" y="500"/>
+      <point x="182" y="455"/>
+      <point x="136" y="455"/>
+      <point x="136" y="500"/>
+      <point x="45" y="500"/>
+    </contour>
+    <contour>
+      <point x="0" y="-227"/>
+      <point x="91" y="-227"/>
+      <point x="91" y="-182"/>
+      <point x="136" y="-182"/>
+      <point x="136" y="-45"/>
+      <point x="45" y="-45"/>
+      <point x="45" y="-182"/>
+      <point x="0" y="-182"/>
+    </contour>
+  </outline>
+</glyph>

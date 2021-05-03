@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="parenright.case" format="2">
+  <advance width="364"/>
+  <outline>
+    <contour>
+      <point x="0" y="-182"/>
+      <point x="182" y="-182"/>
+      <point x="182" y="-136"/>
+      <point x="227" y="-136"/>
+      <point x="227" y="-91"/>
+      <point x="273" y="-91"/>
+      <point x="273" y="591"/>
+      <point x="227" y="591"/>
+      <point x="227" y="682"/>
+      <point x="91" y="682"/>
+      <point x="91" y="727"/>
+      <point x="0" y="727"/>
+      <point x="0" y="636"/>
+      <point x="136" y="636"/>
+      <point x="136" y="591"/>
+      <point x="182" y="591"/>
+      <point x="182" y="-91"/>
+      <point x="136" y="-91"/>
+      <point x="136" y="-136"/>
+      <point x="0" y="-136"/>
+    </contour>
+  </outline>
+</glyph>

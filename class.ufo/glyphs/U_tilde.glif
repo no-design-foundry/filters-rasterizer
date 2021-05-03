@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="Utilde" format="2">
+  <advance width="636"/>
+  <unicode hex="0168"/>
+  <outline>
+    <contour>
+      <point x="136" y="773"/>
+      <point x="227" y="773"/>
+      <point x="227" y="864"/>
+      <point x="318" y="864"/>
+      <point x="318" y="818"/>
+      <point x="364" y="818"/>
+      <point x="364" y="773"/>
+      <point x="500" y="773"/>
+      <point x="500" y="818"/>
+      <point x="545" y="818"/>
+      <point x="545" y="955"/>
+      <point x="455" y="955"/>
+      <point x="455" y="864"/>
+      <point x="364" y="864"/>
+      <point x="364" y="909"/>
+      <point x="318" y="909"/>
+      <point x="318" y="955"/>
+      <point x="182" y="955"/>
+      <point x="182" y="909"/>
+      <point x="136" y="909"/>
+    </contour>
+    <contour>
+      <point x="45" y="182"/>
+      <point x="91" y="182"/>
+      <point x="91" y="91"/>
+      <point x="136" y="91"/>
+      <point x="136" y="45"/>
+      <point x="182" y="45"/>
+      <point x="182" y="0"/>
+      <point x="455" y="0"/>
+      <point x="455" y="45"/>
+      <point x="500" y="45"/>
+      <point x="500" y="91"/>
+      <point x="545" y="91"/>
+      <point x="545" y="182"/>
+      <point x="591" y="182"/>
+      <point x="591" y="727"/>
+      <point x="500" y="727"/>
+      <point x="500" y="182"/>
+      <point x="455" y="182"/>
+      <point x="455" y="136"/>
+      <point x="409" y="136"/>
+      <point x="409" y="91"/>
+      <point x="227" y="91"/>
+      <point x="227" y="136"/>
+      <point x="182" y="136"/>
+      <point x="182" y="182"/>
+      <point x="136" y="182"/>
+      <point x="136" y="727"/>
+      <point x="45" y="727"/>
+    </contour>
+  </outline>
+</glyph>

@@ -226,16 +226,16 @@ class CurrentHintedGlyph:
                     break
         return shape
 
-
     def _draw_shapes(self, glyph: RGlyph, shapes, offset: int, reverse=False):
         for shape in shapes:
             contour = glyph.contourClass()
-            shape_coordinates = [(y*abs(offset), x*abs(offset)) for y, x in shape]
-            if reverse:
-                shape_coordinates = shape_coordinates[::-1]
+            shape_coordinates = list(map(lambda point: (point[0]*abs(offset), point[1]*abs(offset)), shape))
             shape_coordinates_offsetted = get_offsets(shape_coordinates, offset=offset/2)
             for y, x in shape_coordinates_offsetted:
-                contour.appendPoint(Point((int(round(self.offset_left+x)), int(round(self.offset_top-y))), "line"))
+                point = Point((int(round(self.offset_left+x)), int(round(self.offset_top-y))), segmentType="line", smooth=False)
+                contour.appendPoint(point)
+            if reverse:
+                contour.reverse()
             glyph.appendContour(contour)
 
     def draw(self, font: RFont) -> None:
