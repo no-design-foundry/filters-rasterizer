@@ -15,7 +15,7 @@ from fontTools.ttLib.ttFont import TTFont
 from fractions import Fraction
 from math import hypot, atan2, tan, ceil, floor
 from typing import Iterator, List, Tuple, Dict
-from defcon import Point
+from defcon import Point, Font
 from functools import reduce
 from operator import add
 from io import BytesIO
@@ -288,13 +288,12 @@ def rasterize(binary_font_source=None, ufo=None, font_size=100, **settings):
     unicode_dict = get_aglfn()
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(font_size)), x_height)
     for glyph_name in glyph_names:
-        # if glyph_name not in "abcdefghijklmnopqrstuvwxyz":
-        #     continue
         rasterized_font.append_glyph(glyph_name)
     rasterized_font.paste_metrics(ufo)
     for glyph in rasterized_font:
         glyph.draw(ufo)
         ufo[glyph.glyph_name].unicode = unicode_dict.get(glyph.glyph_name, None)
+
 
 if __name__ == "__main__":
     import defcon
@@ -307,7 +306,6 @@ if __name__ == "__main__":
             functions = inspect.getmembers(class_, predicate=inspect.isfunction)
             for name, function in functions:
                 setattr(class_, name, timer(function))
-
     ufo = defcon.Font()
     with open(base / "fonts" / "VTT.ttf", "rb") as input_file:
         rasterize(binary_font_source=input_file, ufo=ufo)
