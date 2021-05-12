@@ -1,12 +1,12 @@
-import numpy as np
 import freetype
-import time
-import operator
 import itertools
-import concurrent.futures
-import pandas
 
+from pandas import DataFrame
 from scipy.ndimage import label
+from numpy import zeros
+
+from .rasterize_kerning import rasterize_kerning
+from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontParts.world import OpenFont, NewFont
 from fontParts.fontshell.font import RFont
 from fontParts.fontshell.glyph import RGlyph
@@ -15,27 +15,9 @@ from fontTools.ttLib.ttFont import TTFont
 from fractions import Fraction
 from math import hypot, atan2, tan, ceil, floor
 from typing import Iterator, List, Tuple, Dict
-from defcon import Point, Font
 from functools import reduce
 from operator import add
 from io import BytesIO
-
-
-time_counter = {}
-base = Path(__file__).parent
-
-
-def timer(func):
-    def new_func(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        time_diff = end_time - start_time
-        if func.__qualname__ not in time_counter:
-            time_counter[func.__qualname__] = 0
-        time_counter[func.__qualname__] += time_diff
-        return result
-    return new_func
 
 def bits(x):
     data = []
@@ -48,7 +30,7 @@ def bits(x):
 
 def get_aglfn():
     data = {}
-    with open(base / "aglfn.txt", 'r') as input_file:
+    with open(Path(__file__).parent / "aglfn.txt", 'r') as input_file:
         for line in input_file.read().splitlines():
             if not line.startswith("#"):
                 unicode_, glyphname, _ = line.split(";")
@@ -71,7 +53,7 @@ def get_offsets(coordinates, offset):
     num_points = len(coordinates)
     offset_points = [None] * num_points
     for i in range(num_points):
-        x, y = coordinates[i % len(coordinates)]
+        x, y = coordinates[i]
         if i == 0:
             prev_pt = coordinates[-1]
             d1x, d1y = x - prev_pt[0], y - prev_pt[1]
@@ -103,7 +85,7 @@ def get_offsets(coordinates, offset):
             vector_length_2 = hypot(d2x, d2y)
             dx = offset*d2y/vector_length_2
             dy = -offset*d2x/vector_length_2
-        offset_points[i] = ((x + dx + abs(offset), y + dy + abs(offset)))
+        offset_points[i] = (round(x + dx + abs(offset)), round(y + dy + abs(offset)))
     return offset_points
 
 
@@ -135,6 +117,9 @@ class Shape:
     def __len__(self):
         return len(self.matrix_coordinates)
 
+    def __getitem__(self, index):
+        return self.matrix_coordinates[index]
+
 
 class CurrentHintedGlyph:
     def __init__(self, font: freetype.Face, glyph_name: str, scale_ratio: Fraction, pixel_size) -> None:
@@ -142,20 +127,20 @@ class CurrentHintedGlyph:
         self.scale_ratio = scale_ratio
         self.glyph_name = glyph_name
         self.unicode = None
-        self.offset_left = font.glyph.metrics.horiBearingX * scale_ratio
-        self.offset_top = font.glyph.metrics.horiBearingY * scale_ratio
+        self.offset_left = int(round(font.glyph.metrics.horiBearingX * scale_ratio))
+        self.offset_top = int(round(font.glyph.metrics.horiBearingY * scale_ratio))
         self.height = font.glyph.metrics.height * scale_ratio
-        self.width = font.glyph.metrics.horiAdvance * scale_ratio
+        self.width = int(round(font.glyph.metrics.horiAdvance * scale_ratio))
         self.double_bitmap = self._get_bitmap(font)
         self.black_shapes = self._get_shapes(self._get_ones(), 1)
         self.white_shapes = self._get_shapes(self._get_zeros(), 0)
 
-    def _get_bitmap(self, font) -> np.array:
+    def _get_bitmap(self, font):
         bitmap = font.glyph.bitmap
         width = bitmap.width*2
         buffer = bitmap.buffer
         pitch = bitmap.pitch
-        ar = np.zeros(shape=(bitmap.rows*2, width))
+        ar = zeros(shape=(bitmap.rows*2, width))
         for index in range(bitmap.rows):
             row = reduce(add, [bits(buffer[index * pitch + j]) for j in range(pitch)])
             ar[index*2,:] = row[:width]
@@ -163,7 +148,7 @@ class CurrentHintedGlyph:
         return ar
 
     def __repr__(self) -> str:
-        visualisation = [f"{super().__repr__()}, unicode:{self.unicode}", repr_ar(self.bitmap), ""]
+        visualisation = [f"{super().__repr__()}, unicode:{self.unicode}", repr_ar(self.double_bitmap), ""]
         return "\n".join(visualisation)
 
     def _get_ones(self) -> List:
@@ -177,12 +162,7 @@ class CurrentHintedGlyph:
         fields = [(labels == i).nonzero() for i in range(1, numL + 1)]
         indexes_to_remove = []
         for i, field in enumerate(fields):
-            if any((
-                0 in field[0], 
-                0 in field[1], 
-                (ar_inverted.shape[0] - 1) in field[0],
-                (ar_inverted.shape[1] - 1) in field[1]
-                )):
+            if any((0 in field[0], 0 in field[1], (ar_inverted.shape[0] - 1) in field[0], (ar_inverted.shape[1] - 1) in field[1])):
                 indexes_to_remove.append(i)
         indexes_to_remove = sorted(indexes_to_remove, reverse=True)
         for index_to_remove in indexes_to_remove:
@@ -192,7 +172,7 @@ class CurrentHintedGlyph:
     def _get_shapes(self, fields, match: int) -> List[Shape]:
         shapes = []
         for field in fields:
-            df = pandas.DataFrame({"cell":field[0], "row":field[1]}, columns=["row", "cell"])
+            df = DataFrame({"cell":field[0], "row":field[1]}, columns=["row", "cell"])
             cell = df.iloc[df[df["row"] == min(df["row"])]["cell"].idxmax()]
             shapes.append(Shape(self.border_walker((cell["cell"], cell["row"]), match=match)))
         return shapes
@@ -210,12 +190,7 @@ class CurrentHintedGlyph:
                 if (line, cell) == start:
                     walking = False
                     break
-                if (
-                    line < 0
-                    or cell < 0
-                    or line > self.double_bitmap.shape[0] - 1
-                    or cell > self.double_bitmap.shape[1] - 1
-                ):
+                if (line < 0 or cell < 0 or line > self.double_bitmap.shape[0] - 1 or cell > self.double_bitmap.shape[1] - 1):
                     continue
                 if self.double_bitmap[line][cell] == match and (line, cell) not in visited:
                     visited.add((line, cell))
@@ -227,22 +202,26 @@ class CurrentHintedGlyph:
         return shape
 
 
-    def _draw_shapes(self, glyph: RGlyph, shapes, offset: int, reverse=False):
+    def _draw_shapes(self, pen, shapes, offset: int, reverse=False):
         for shape in shapes:
-            contour = glyph.contourClass()
-            shape_coordinates = [(y*abs(offset), x*abs(offset)) for y, x in shape]
             if reverse:
-                shape_coordinates = shape_coordinates[::-1]
+                shape = reversed(shape)
+            shape_coordinates = [(self.offset_left + x*abs(offset) - self.pixel_size/2, self.offset_top - y*abs(offset) - self.pixel_size/2) for y, x in shape]
             shape_coordinates_offsetted = get_offsets(shape_coordinates, offset=offset/2)
-            for y, x in shape_coordinates_offsetted:
-                contour.appendPoint(Point((int(round(self.offset_left+x)), int(round(self.offset_top-y))), "line"))
-            glyph.appendContour(contour)
+            # print("lowest point", min([y for x, y in  shape_coordinates_offsetted]))
+            try:
+                pen.endPts.append(pen.endPts[-1] + len(shape_coordinates_offsetted))
+            except IndexError:
+                pen.endPts.append(len(shape_coordinates_offsetted) - 1)
+            pen.points.extend(shape_coordinates_offsetted)
+            pen.types.extend([1]*len(shape_coordinates_offsetted))
 
     def draw(self, font: RFont) -> None:
-        glyph = font.newGlyph(self.glyph_name)
-        glyph.width = round(self.width)
-        self._draw_shapes(glyph, self.black_shapes, self.pixel_size/2)
-        self._draw_shapes(glyph, self.white_shapes, -self.pixel_size/2, reverse=True)
+        pen = TTGlyphPen([])
+        self._draw_shapes(pen, self.black_shapes, self.pixel_size/2)
+        self._draw_shapes(pen, self.white_shapes, -self.pixel_size/2, reverse=True)
+        font["glyf"][self.glyph_name] = pen.glyph()
+        font["hmtx"][self.glyph_name] = (self.width, self.offset_left)
 
 
 class FontRasterizer:
@@ -252,11 +231,8 @@ class FontRasterizer:
         self.font_size = font_size
         self.hinted_font.set_pixel_sizes(0, font_size)
         self.x_height = x_height
-        scale_ratio = self.hinted_font.ascender/self.hinted_font.size.ascender
-        pixel_size = scale_ratio*64
-        self.scale_ratio = scale_ratio
-        self.pixel_size = pixel_size
-
+        self.scale_ratio = 1/(self.hinted_font.size.y_scale/65536)
+        self.pixel_size = self.scale_ratio*64
         self.glyphs: List[CurrentHintedGlyph] = []
         return None
 
@@ -270,50 +246,20 @@ class FontRasterizer:
     def append_glyph(self, glyph_name: str) -> None:
         glyph = self._get_hinted_glyph(glyph_name)
         glyph.pixel_size = self.pixel_size
-        self.glyphs.append(glyph)
+        self.glyphs.append(glyph)        
 
-    def paste_metrics(self, ufo):
-        ufo.info.descender = round(self.hinted_font.size.descender * self.scale_ratio)
-        ufo.info.ascender = round(self.hinted_font.size.ascender * self.scale_ratio)
-        ufo.info.xHeight = self.x_height
-        
-
-def rasterize(binary_font_source=None, ufo=None, font_size=100, **settings):
-    if isinstance(binary_font_source, BytesIO):
-        binary_font_source.seek(0)
-    hinted_font = freetype.Face(binary_font_source)
-    tt_font = TTFont(binary_font_source)
+def rasterize(tt_font=None, font_size=40, **settings):
+    binary_font = BytesIO()
+    tt_font.save(binary_font)
+    binary_font.seek(0)
+    hinted_font = freetype.Face(binary_font)
     glyph_names = tt_font.getGlyphOrder()
     x_height = tt_font["OS/2"].sxHeight
     unicode_dict = get_aglfn()
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(font_size)), x_height)
     for glyph_name in glyph_names:
         rasterized_font.append_glyph(glyph_name)
-    rasterized_font.paste_metrics(ufo)
     for glyph in rasterized_font:
-        glyph.draw(ufo)
-        ufo[glyph.glyph_name].unicode = unicode_dict.get(glyph.glyph_name, None)
-
-
-if __name__ == "__main__":
-    import defcon
-    import datetime
-    debug = False
-    if debug:
-        start = datetime.datetime.now()
-        import inspect
-        for class_ in [FontRasterizer, Shape, CurrentHintedGlyph]:
-            functions = inspect.getmembers(class_, predicate=inspect.isfunction)
-            for name, function in functions:
-                setattr(class_, name, timer(function))
-    ufo = defcon.Font()
-    with open(base / "fonts" / "VTT.ttf", "rb") as input_file:
-        rasterize(binary_font_source=input_file, ufo=ufo)
-    ufo.save('debug.ufo')
-    
-    if debug:
-        end = datetime.datetime.now()
-        print((end-start))
-        print("="*10)
-        for key, value in sorted(time_counter.items(), key=lambda x: x[1], reverse=True):
-            print(key, round(value, 5))
+        glyph.draw(tt_font)
+    rasterize_kerning(tt_font, round(rasterized_font.pixel_size))
+    return tt_font
