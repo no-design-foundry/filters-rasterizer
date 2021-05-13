@@ -248,7 +248,7 @@ class FontRasterizer:
         glyph.pixel_size = self.pixel_size
         self.glyphs.append(glyph)        
 
-def rasterize(tt_font=None, font_size=40, **settings):
+def rasterize(tt_font=None, resolution=40, **settings):
     binary_font = BytesIO()
     tt_font.save(binary_font)
     binary_font.seek(0)
@@ -256,7 +256,7 @@ def rasterize(tt_font=None, font_size=40, **settings):
     glyph_names = tt_font.getGlyphOrder()
     x_height = tt_font["OS/2"].sxHeight
     unicode_dict = get_aglfn()
-    rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(font_size)), x_height)
+    rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
     for glyph_name in glyph_names:
         rasterized_font.append_glyph(glyph_name)
     for glyph in rasterized_font:
