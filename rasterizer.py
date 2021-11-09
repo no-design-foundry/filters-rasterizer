@@ -7,11 +7,7 @@ from numpy import zeros
 
 from .rasterize_kerning import rasterize_kerning
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-from fontParts.world import OpenFont, NewFont
-from fontParts.fontshell.font import RFont
-from fontParts.fontshell.glyph import RGlyph
 from pathlib import Path
-from fontTools.ttLib.ttFont import TTFont
 from fractions import Fraction
 from math import hypot, atan2, tan, ceil, floor
 from typing import Iterator, List, Tuple, Dict
@@ -216,7 +212,7 @@ class CurrentHintedGlyph:
             pen.points.extend(shape_coordinates_offsetted)
             pen.types.extend([1]*len(shape_coordinates_offsetted))
 
-    def draw(self, font: RFont) -> None:
+    def draw(self, font) -> None:
         pen = TTGlyphPen([])
         self._draw_shapes(pen, self.black_shapes, self.pixel_size/2)
         self._draw_shapes(pen, self.white_shapes, -self.pixel_size/2, reverse=True)
@@ -248,13 +244,14 @@ class FontRasterizer:
         glyph.pixel_size = self.pixel_size
         self.glyphs.append(glyph)        
 
-def rasterize(tt_font=None, resolution=40, **settings):
+def rasterize(tt_font=None, ufo=None, resolution=40, **settings):
     binary_font = BytesIO()
     tt_font.save(binary_font)
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
     glyph_names = tt_font.getGlyphOrder()
     x_height = tt_font["OS/2"].sxHeight
+
     unicode_dict = get_aglfn()
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
     for glyph_name in glyph_names:
