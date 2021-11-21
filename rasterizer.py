@@ -4,7 +4,8 @@ import itertools
 from pandas import DataFrame
 from scipy.ndimage import label
 from numpy import zeros
-
+from fontTools.ttLib import TTFont
+from datetime import datetime
 from .rasterize_kerning import rasterize_kerning
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from pathlib import Path
@@ -14,6 +15,9 @@ from typing import Iterator, List, Tuple, Dict
 from functools import reduce
 from operator import add
 from io import BytesIO
+from defcon import Font, Glyph, Point, Contour
+from tools.generic import get_charstring
+
 
 def bits(x):
     data = []
@@ -32,6 +36,8 @@ def get_aglfn():
                 unicode_, glyphname, _ = line.split(";")
                 data[glyphname] = int(unicode_, 16)
     return data
+
+unicode_dict = get_aglfn()
 
 
 def repr_ar(ar):
@@ -122,7 +128,7 @@ class CurrentHintedGlyph:
         self.pixel_size = pixel_size
         self.scale_ratio = scale_ratio
         self.glyph_name = glyph_name
-        self.unicode = None
+        self.unicode = ord(glyph_name) if len(glyph_name) == 1 else None
         self.offset_left = int(round(font.glyph.metrics.horiBearingX * scale_ratio))
         self.offset_top = int(round(font.glyph.metrics.horiBearingY * scale_ratio))
         self.height = font.glyph.metrics.height * scale_ratio
@@ -197,6 +203,9 @@ class CurrentHintedGlyph:
                     break
         return shape
 
+    def _prepare_coordinates(self, shape, offset):
+        shape_coordinates = [(self.offset_left + x*abs(offset) - self.pixel_size/2, self.offset_top - y*abs(offset) - self.pixel_size/2) for y, x in shape]
+        return shape_coordinates
 
     def _draw_shapes(self, pen, shapes, offset: int, reverse=False):
         for shape in shapes:
@@ -204,7 +213,6 @@ class CurrentHintedGlyph:
                 shape = reversed(shape)
             shape_coordinates = [(self.offset_left + x*abs(offset) - self.pixel_size/2, self.offset_top - y*abs(offset) - self.pixel_size/2) for y, x in shape]
             shape_coordinates_offsetted = get_offsets(shape_coordinates, offset=offset/2)
-            # print("lowest point", min([y for x, y in  shape_coordinates_offsetted]))
             try:
                 pen.endPts.append(pen.endPts[-1] + len(shape_coordinates_offsetted))
             except IndexError:
@@ -212,12 +220,36 @@ class CurrentHintedGlyph:
             pen.points.extend(shape_coordinates_offsetted)
             pen.types.extend([1]*len(shape_coordinates_offsetted))
 
-    def draw(self, font) -> None:
-        pen = TTGlyphPen([])
-        self._draw_shapes(pen, self.black_shapes, self.pixel_size/2)
-        self._draw_shapes(pen, self.white_shapes, -self.pixel_size/2, reverse=True)
-        font["glyf"][self.glyph_name] = pen.glyph()
-        font["hmtx"][self.glyph_name] = (self.width, self.offset_left)
+    def _draw_shapes_defcon(self, glyph, shapes, offset:int, reverse):
+        for shape in shapes:
+            if reverse:
+                shape = reversed(shape)
+            shape_coordinates = [(self.offset_left + x*abs(offset) - self.pixel_size/2, self.offset_top - y*abs(offset) - self.pixel_size/2) for y, x in shape]
+            shape_coordinates_offsetted = get_offsets(shape_coordinates, offset=offset/2)
+            pen = glyph.getPen()
+            for i, (x, y) in enumerate(shape_coordinates_offsetted):
+                if i == 0:
+                    pen.moveTo((x, y))
+                else:
+                    pen.lineTo((x, y))
+            pen.endPath()
+            
+
+    def draw(self, output) -> None:
+        if isinstance(output, TTFont):
+            pen = TTGlyphPen([])
+            self._draw_shapes(pen, self.black_shapes, self.pixel_size/2)
+            self._draw_shapes(pen, self.white_shapes, -self.pixel_size/2, reverse=True)
+            output["glyf"][self.glyph_name] = pen.glyph()
+            output["hmtx"][self.glyph_name] = (self.width, self.offset_left)
+        elif isinstance(output, Glyph):
+            output.name = self.glyph_name
+            output.width = self.width
+            output.unicode = self.unicode
+            self._draw_shapes_defcon(output, self.black_shapes, self.pixel_size/2, reverse=False)
+            self._draw_shapes_defcon(output, self.white_shapes, self.pixel_size/2, reverse=True)
+            # self._draw_shapes_defcon(pen, self.white_shapes, self.pixel_size/2)
+            
 
 
 class FontRasterizer:
@@ -244,19 +276,22 @@ class FontRasterizer:
         glyph.pixel_size = self.pixel_size
         self.glyphs.append(glyph)        
 
-def rasterize(tt_font=None, ufo=None, resolution=40, **settings):
-    binary_font = BytesIO()
-    tt_font.save(binary_font)
+def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[], resolution=40):
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
     glyph_names = tt_font.getGlyphOrder()
     x_height = tt_font["OS/2"].sxHeight
-
-    unicode_dict = get_aglfn()
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
-    for glyph_name in glyph_names:
+    output_glyphs = []
+    for glyph_name in glyph_names_to_process:
         rasterized_font.append_glyph(glyph_name)
-    for glyph in rasterized_font:
-        glyph.draw(tt_font)
-    rasterize_kerning(tt_font, round(rasterized_font.pixel_size))
-    return tt_font
+    # if "glyf" in tt_font:
+    #     for glyph in rasterized_font:
+    #         glyph.draw(tt_font)
+    #     return tt_font
+    if "CFF2" in tt_font or True:
+        for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
+            output_glyph = Glyph()
+            glyph.draw(ufo[glyph_name])
+        return ufo
+    
