@@ -232,7 +232,8 @@ class CurrentHintedGlyph:
                     pen.moveTo((x, y))
                 else:
                     pen.lineTo((x, y))
-            pen.endPath()
+            pen.closePath()
+            # pen.endPath()
             
 
     def draw(self, output) -> None:
@@ -245,9 +246,9 @@ class CurrentHintedGlyph:
         elif isinstance(output, Glyph):
             output.name = self.glyph_name
             output.width = self.width
-            output.unicode = self.unicode
+            # output.unicode = self.unicode
             self._draw_shapes_defcon(output, self.black_shapes, self.pixel_size/2, reverse=False)
-            self._draw_shapes_defcon(output, self.white_shapes, self.pixel_size/2, reverse=True)
+            self._draw_shapes_defcon(output, self.white_shapes, -self.pixel_size/2, reverse=True)
             # self._draw_shapes_defcon(pen, self.white_shapes, self.pixel_size/2)
             
 
@@ -285,12 +286,9 @@ def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[]
     output_glyphs = []
     for glyph_name in glyph_names_to_process:
         rasterized_font.append_glyph(glyph_name)
-    # if "glyf" in tt_font:
-    #     for glyph in rasterized_font:
-    #         glyph.draw(tt_font)
-    #     return tt_font
     if "CFF2" in tt_font or True:
         for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
+            # print(glyph)
             output_glyph = Glyph()
             glyph.draw(ufo[glyph_name])
         return ufo
