@@ -6,7 +6,7 @@ from scipy.ndimage import label
 from numpy import zeros
 from fontTools.ttLib import TTFont
 from datetime import datetime
-from .rasterize_kerning import rasterize_kerning
+from .rasterize_kerning import rasterize_kerning, rasterize_ufo_kerning
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from pathlib import Path
 from fractions import Fraction
@@ -128,7 +128,6 @@ class CurrentHintedGlyph:
         self.pixel_size = pixel_size
         self.scale_ratio = scale_ratio
         self.glyph_name = glyph_name
-        self.unicode = ord(glyph_name) if len(glyph_name) == 1 else None
         self.offset_left = int(round(font.glyph.metrics.horiBearingX * scale_ratio))
         self.offset_top = int(round(font.glyph.metrics.horiBearingY * scale_ratio))
         self.height = font.glyph.metrics.height * scale_ratio
@@ -150,7 +149,7 @@ class CurrentHintedGlyph:
         return ar
 
     def __repr__(self) -> str:
-        visualisation = [f"{super().__repr__()}, unicode:{self.unicode}", repr_ar(self.double_bitmap), ""]
+        visualisation = [super().__repr__(), repr_ar(self.double_bitmap), ""]
         return "\n".join(visualisation)
 
     def _get_ones(self) -> List:
@@ -224,7 +223,7 @@ class CurrentHintedGlyph:
         for shape in shapes:
             if reverse:
                 shape = reversed(shape)
-            shape_coordinates = [(self.offset_left + x*abs(offset) - self.pixel_size/2, self.offset_top - y*abs(offset) - self.pixel_size/2) for y, x in shape]
+            shape_coordinates = [(self.offset_left + x*abs(offset), self.offset_top - y*abs(offset) - self.pixel_size/2) for y, x in shape]
             shape_coordinates_offsetted = get_offsets(shape_coordinates, offset=offset/2)
             pen = glyph.getPen()
             for i, (x, y) in enumerate(shape_coordinates_offsetted):
@@ -233,8 +232,6 @@ class CurrentHintedGlyph:
                 else:
                     pen.lineTo((x, y))
             pen.closePath()
-            # pen.endPath()
-            
 
     def draw(self, output) -> None:
         if isinstance(output, TTFont):
@@ -246,12 +243,9 @@ class CurrentHintedGlyph:
         elif isinstance(output, Glyph):
             output.name = self.glyph_name
             output.width = self.width
-            # output.unicode = self.unicode
             self._draw_shapes_defcon(output, self.black_shapes, self.pixel_size/2, reverse=False)
             self._draw_shapes_defcon(output, self.white_shapes, -self.pixel_size/2, reverse=True)
-            # self._draw_shapes_defcon(pen, self.white_shapes, self.pixel_size/2)
             
-
 
 class FontRasterizer:
     def __init__(self, hinted_font: freetype.Face, glyph_names: List, font_size: int, x_height) -> None:
@@ -278,18 +272,20 @@ class FontRasterizer:
         self.glyphs.append(glyph)        
 
 def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[], resolution=40):
+    # assert (ufo or binary_font) and not (ufo and binary_font) and (not ufo and not binary_font)
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
-    glyph_names = tt_font.getGlyphOrder()
-    x_height = tt_font["OS/2"].sxHeight
+    glyph_names = tt_font.getGlyphOrder() if tt_font else ufo.glyphOrder
+    x_height = tt_font["OS/2"].sxHeight if tt_font else ufo.info.xHeight
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
-    output_glyphs = []
+    if not glyph_names_to_process:
+        glyph_names_to_process = glyph_names
+        
     for glyph_name in glyph_names_to_process:
         rasterized_font.append_glyph(glyph_name)
-    if "CFF2" in tt_font or True:
-        for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
-            # print(glyph)
-            output_glyph = Glyph()
-            glyph.draw(ufo[glyph_name])
-        return ufo
+    for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
+        output_glyph = Glyph()
+        glyph.draw(ufo[glyph_name])
+    rasterize_ufo_kerning(ufo, rasterized_font.pixel_size)
+    return ufo
     

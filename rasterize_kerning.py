@@ -7,7 +7,11 @@ def kerning_indexes(tt_font):
             return feature.Feature.LookupListIndex
 
 def round_XAdvance(Value1, pixel_size):
-    Value1.XAdvance = ceil(Value1.XAdvance / pixel_size) * pixel_size
+    Value1.XAdvance = round_value(Value1.XAdvance, pixel_size)
+
+def round_value(value, pixel_size):
+    return ceil(value / pixel_size) * pixel_size
+
 
 def update_format_1_subtable(sub_table, pixel_size):
     first_glyphs = sub_table.Coverage.glyphs
@@ -49,3 +53,11 @@ def rasterize_kerning(tt_font, pixel_size):
                     update_format_2_subtable(sub_table, pixel_size)
     except Exception as e:
         print(e)
+
+def rasterize_ufo_kerning(ufo, pixel_size):
+    for key, value in [i for i in ufo.kerning.items()]:
+        rounded_value = round_value(value, pixel_size)
+        if rounded_value != 0:
+            ufo.kerning[key] = rounded_value
+        else:
+            del ufo.kerning[key]
