@@ -58,6 +58,6 @@ def rasterize_ufo_kerning(ufo, pixel_size):
     for key, value in [i for i in ufo.kerning.items()]:
         rounded_value = round_value(value, pixel_size)
         if rounded_value != 0:
-            ufo.kerning[key] = rounded_value
+            ufo.kerning[key] = round(rounded_value)
         else:
             del ufo.kerning[key]
