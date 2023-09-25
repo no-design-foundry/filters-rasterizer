@@ -263,7 +263,14 @@ class FontRasterizer:
         return iter(self.glyphs)
 
     def _get_hinted_glyph(self, glyph_name: str) -> CurrentHintedGlyph:
-        self.hinted_font.load_glyph(self.glyph_names.index(glyph_name), freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
+        # here it falls, find out why
+        try:
+            index = self.glyph_names.index(glyph_name)
+            self.hinted_font.load_glyph(self.glyph_names.index(glyph_name), freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
+            # self.hinted_font.load_glyph(4, freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
+        except:
+            print("Load glyph failed")
+
         return CurrentHintedGlyph(self.hinted_font, glyph_name, self.scale_ratio, pixel_size=self.pixel_size)
 
     def append_glyph(self, glyph_name: str) -> None:
@@ -285,7 +292,10 @@ def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[]
         rasterized_font.append_glyph(glyph_name)
     for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
         output_glyph = Glyph()
-        glyph.draw(ufo[glyph_name])
+        try:
+            glyph.draw(ufo[glyph_name])
+        except KeyError:
+            print(f"{glyph_name} not in layer")
     rasterize_ufo_kerning(ufo, rasterized_font.pixel_size)
     return ufo
     

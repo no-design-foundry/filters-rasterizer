@@ -37,7 +37,3 @@ subsetter.subset(tt_font)
 rasterizer.rasterize(tt_font=tt_font)
 tt_font.save("debug.ttf")
 end = datetime.datetime.now()
-# print((end-start))
-# print("="*10)
-# for key, value in sorted(time_counter.items(), key=lambda x: x[1], reverse=True):
-#     print(key, round(value, 5))
