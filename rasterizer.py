@@ -283,7 +283,10 @@ def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[]
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
     glyph_names = tt_font.getGlyphOrder() if tt_font else ufo.glyphOrder
-    x_height = tt_font["OS/2"].sxHeight if tt_font else ufo.info.xHeight
+    try:
+        x_height = tt_font["OS/2"].sxHeight if tt_font else ufo.info.xHeight
+    except AttributeError:
+        x_height = 500
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
     if not glyph_names_to_process:
         glyph_names_to_process = glyph_names
