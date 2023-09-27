@@ -290,11 +290,10 @@ def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[]
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
     if not glyph_names_to_process:
         glyph_names_to_process = glyph_names
-        
+    
     for glyph_name in glyph_names_to_process:
         rasterized_font.append_glyph(glyph_name)
     for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
-        output_glyph = Glyph()
         try:
             glyph.draw(ufo[glyph_name])
         except KeyError:
