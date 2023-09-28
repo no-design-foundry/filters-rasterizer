@@ -280,6 +280,7 @@ class FontRasterizer:
 
 def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[], resolution=40):
     # assert (ufo or binary_font) and not (ufo and binary_font) and (not ufo and not binary_font)
+    ufo.info.unitsPerEm = tt_font["head"].unitsPerEm
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
     glyph_names = tt_font.getGlyphOrder() if tt_font else ufo.glyphOrder
