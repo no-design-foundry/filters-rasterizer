@@ -266,7 +266,8 @@ class FontRasterizer:
         # here it falls, find out why
         try:
             index = self.glyph_names.index(glyph_name)
-            self.hinted_font.load_glyph(self.glyph_names.index(glyph_name), freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
+            # problem when variable font
+            self.hinted_font.load_glyph(index, freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
             # self.hinted_font.load_glyph(4, freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
         except:
             print("Load glyph failed")
@@ -278,7 +279,7 @@ class FontRasterizer:
         glyph.pixel_size = self.pixel_size
         self.glyphs.append(glyph)        
 
-def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[], resolution=40):
+def rasterize(ufo=None, tt_font=None, binary_font=None, glyph_names_to_process=[], resolution=40):
     # assert (ufo or binary_font) and not (ufo and binary_font) and (not ufo and not binary_font)
     ufo.info.unitsPerEm = tt_font["head"].unitsPerEm
     binary_font.seek(0)
@@ -291,9 +292,10 @@ def rasterize(ufo=None,tt_font=None, binary_font=None, glyph_names_to_process=[]
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
     if not glyph_names_to_process:
         glyph_names_to_process = glyph_names
-    
+
     for glyph_name in glyph_names_to_process:
         rasterized_font.append_glyph(glyph_name)
+
     for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
         try:
             glyph.draw(ufo[glyph_name])
