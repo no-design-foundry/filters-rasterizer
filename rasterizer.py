@@ -1,6 +1,4 @@
 import freetype
-
-from pandas import DataFrame
 from scipy.ndimage import label
 from numpy import zeros, array, min as np_min, max as np_max, argmin, argmax
 from fontTools.ttLib import TTFont
@@ -169,10 +167,11 @@ class CurrentHintedGlyph:
     def _get_shapes(self, fields, match: int) -> List[Shape]:
         shapes = []
         for field in fields:
-            df = DataFrame({"cell":field[0], "row":field[1]}, columns=["row", "cell"])
-            cell = df.iloc[df[df["row"] == min(df["row"])]["cell"].idxmax()]
-            del df
-            shapes.append(Shape(self.border_walker((cell["cell"], cell["row"]), match=match)))
+            # df = DataFrame({"cell":field[0], "row":field[1]}, columns=["row", "cell"])
+            # cell = df.iloc[df[df["row"] == min(df["row"])]["cell"].idxmax()]
+            row_min = np_min(field[1])
+            cell_max = np_max(field[0][field[1] == row_min])
+            shapes.append(Shape(self.border_walker((cell_max, row_min), match=match)))
         return shapes
 
     def border_walker(self, start: Tuple[int, int], match: int = None) -> List[Tuple[int, int]]:
