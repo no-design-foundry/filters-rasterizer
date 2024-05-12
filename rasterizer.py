@@ -1,22 +1,18 @@
 import freetype
-import itertools
 
 from pandas import DataFrame
 from scipy.ndimage import label
-from numpy import zeros
+from numpy import zeros, array, min as np_min, max as np_max, argmin, argmax
 from fontTools.ttLib import TTFont
-from datetime import datetime
-from .rasterize_kerning import rasterize_kerning, rasterize_ufo_kerning
+from .rasterize_kerning import rasterize_ufo_kerning
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from pathlib import Path
 from fractions import Fraction
-from math import hypot, atan2, tan, ceil, floor
-from typing import Iterator, List, Tuple, Dict
+from math import hypot, atan2, tan
+from typing import Iterator, List, Tuple
 from functools import reduce
 from operator import add
-from io import BytesIO
-from defcon import Font, Glyph, Point, Contour
-from tools.generic import get_charstring
+from defcon import Glyph
 
 
 def bits(x):
@@ -175,6 +171,7 @@ class CurrentHintedGlyph:
         for field in fields:
             df = DataFrame({"cell":field[0], "row":field[1]}, columns=["row", "cell"])
             cell = df.iloc[df[df["row"] == min(df["row"])]["cell"].idxmax()]
+            del df
             shapes.append(Shape(self.border_walker((cell["cell"], cell["row"]), match=match)))
         return shapes
 
@@ -184,6 +181,7 @@ class CurrentHintedGlyph:
         visited = {start}
         shape = [start]
         walking = True
+        double_bitmap_shape = self.double_bitmap.shape
         while walking:
             for i, (direction_line, direction_cell) in enumerate(directions):
                 line = cur_line + direction_line
@@ -191,7 +189,7 @@ class CurrentHintedGlyph:
                 if (line, cell) == start:
                     walking = False
                     break
-                if (line < 0 or cell < 0 or line > self.double_bitmap.shape[0] - 1 or cell > self.double_bitmap.shape[1] - 1):
+                if (line < 0 or cell < 0 or line > double_bitmap_shape[0] - 1 or cell > double_bitmap_shape[1] - 1):
                     continue
                 if self.double_bitmap[line][cell] == match and (line, cell) not in visited:
                     visited.add((line, cell))
