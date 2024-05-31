@@ -1,19 +1,11 @@
 # Rastr
 
-Get hinted outlines from a source.
-Hinted outlines could be bitmaps, in various modes.
+This is the Rasterizing filter for [nodesignfoundry.com](https://nodesignfoundry.com)
 
+It gets hinted outlines from a hinted file and turns it into a font.
 
+## TODO
 
----
+- [ ]Find a way how to remove `scipy` dependency
+- [ ] Turn this into a CLI `python3 rastr.py -i Times.otf -r 16 -o Times_16.ufoz` 
 
-TODO:
-- [ ] Use FreeType to get hinted outlines/bitmaps at n point size.
-- [ ] Make a simple filter that modifies a font, command line only. (example: `python3 mirrowLowercase.py Verdana.ttf`)
-- [ ] Generate UFO with bitmap glyphs (`python3 rastr.py Times.otf 16` > 'Times_16.ufoz') 
-- [ ] Generate Variable font with source ufos.
-- [ ] .
-
-...
-
-- [ ] Fancy visual filters and animations and interpolations with bitmaps. 

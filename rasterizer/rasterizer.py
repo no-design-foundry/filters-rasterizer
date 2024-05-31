@@ -175,6 +175,8 @@ class CurrentHintedGlyph:
         return shapes
 
     def border_walker(self, start: Tuple[int, int], match: int = None) -> List[Tuple[int, int]]:
+        # This walker starts on the leftmost cell of the lowest row of given. Once it walks around the shape, it returns coordinates of the shape.
+        # It requires the bitmap to be doubled in size. So the walker place to make turns.
         cur_line, cur_cell = start
         directions = ((+1, 0), (0, +1), (-1, 0), (0, -1))
         visited = {start}
