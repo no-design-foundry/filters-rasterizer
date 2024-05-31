@@ -24,6 +24,7 @@ def bits(x):
 
 def get_aglfn():
     data = {}
+    print("path", Path(__file__).parent)
     with open(Path(__file__).parent / "aglfn.txt", 'r') as input_file:
         for line in input_file.read().splitlines():
             if not line.startswith("#"):

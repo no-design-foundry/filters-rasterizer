@@ -7,6 +7,7 @@ setup(
     description='no design foundry – rasterizer plugin',
     author='Jan Sindler',
     author_email='jansindl3r@example.com',
+    package_data={'': ['aglfn.txt']},  # Include aglfn.txt in all packages
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
