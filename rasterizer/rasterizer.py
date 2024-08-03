@@ -1,10 +1,13 @@
 import freetype
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from scipy.ndimage import label
 from numpy import zeros, min as np_min, max as np_max
 from fontTools.ttLib import TTFont
 from .rasterize_kerning import rasterize_ufo_kerning
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-from pathlib import Path
 from fractions import Fraction
 from math import hypot, atan2, tan
 from typing import Iterator, List, Tuple
@@ -21,18 +24,6 @@ def bits(x):
         data.insert(0, value)
         data.insert(0, value)
     return data
-
-def get_aglfn():
-    data = {}
-    print("path", Path(__file__).parent)
-    with open(Path(__file__).parent / "aglfn.txt", 'r') as input_file:
-        for line in input_file.read().splitlines():
-            if not line.startswith("#"):
-                unicode_, glyphname, _ = line.split(";")
-                data[glyphname] = int(unicode_, 16)
-    return data
-
-unicode_dict = get_aglfn()
 
 
 def repr_ar(ar):
@@ -274,19 +265,19 @@ class FontRasterizer:
 
         return CurrentHintedGlyph(self.hinted_font, glyph_name, self.scale_ratio, pixel_size=self.pixel_size)
 
-    def append_glyph(self, glyph_name: str) -> None:
+    def rasterize_glyph(self, glyph_name: str) -> None:
         glyph = self._get_hinted_glyph(glyph_name)
         glyph.pixel_size = self.pixel_size
-        self.glyphs.append(glyph)        
+        return glyph
 
-def rasterize(ufo=None, tt_font=None, binary_font=None, glyph_names_to_process=[], resolution=40):
+def rasterize(ufo=None, binary_font=None, glyph_names_to_process=[], resolution=40):
     # assert (ufo or binary_font) and not (ufo and binary_font) and (not ufo and not binary_font)
-    ufo.info.unitsPerEm = tt_font["head"].unitsPerEm
+    ufo.info.unitsPerEm = ufo.info.unitsPerEm
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
-    glyph_names = tt_font.getGlyphOrder() if tt_font else ufo.glyphOrder
+    glyph_names = ufo.glyphOrder
     try:
-        x_height = tt_font["OS/2"].sxHeight if tt_font else ufo.info.xHeight
+        x_height = ufo.info.xHeight
     except AttributeError:
         x_height = 500
     rasterized_font = FontRasterizer(hinted_font, glyph_names, int(float(resolution)), x_height)
@@ -294,13 +285,45 @@ def rasterize(ufo=None, tt_font=None, binary_font=None, glyph_names_to_process=[
         glyph_names_to_process = glyph_names
 
     for glyph_name in glyph_names_to_process:
-        rasterized_font.append_glyph(glyph_name)
+        glyph = ufo[glyph_name]
+        if len(glyph) > 0:
+            rasterized_glyph = rasterized_font.rasterize_glyph(glyph_name)
+            glyph.clearContours()
+            rasterized_glyph.draw(glyph)
 
-    for glyph_name, glyph in zip(glyph_names_to_process, rasterized_font):
-        try:
-            glyph.draw(ufo[glyph_name])
-        except KeyError:
-            print(f"{glyph_name} not in layer")
     rasterize_ufo_kerning(ufo, rasterized_font.pixel_size)
     return ufo
+
+def main():
+    from extractor import extractUFO
+    from defcon import Font
+    from pathlib import Path
+    import argparse
+    ufo = Font()
+
+    parser = argparse.ArgumentParser(description="Rasterize font glyphs and kerning.")
+    parser.add_argument("input_file", type=Path, help="Path to the input font file.")
+    parser.add_argument("font_size", type=int, help="Font size of the rasterized font.")
+    parser.add_argument("--output_dir", "-o", type=Path, help="Path to the output file. If not provided, the output will be saved in the same directory as the input file.")
+    parser.add_argument("--glyph_names", "-g", type=str, nargs="+", help="List of glyph names to process. If not provided, all glyphs will be processed.")
+    
+    args = parser.parse_args()
+
+    binary_font = open(args.input_file, "rb")
+    ufo = Font()
+
+    extractUFO(args.input_file, ufo)
+
+    glyph_names_to_process = args.glyph_names if args.glyph_names else ufo.glyphOrder
+    
+    rasterized_ufo = rasterize(ufo=ufo, binary_font=binary_font, glyph_names_to_process=glyph_names_to_process, resolution=args.font_size)
+
+    output_file_name = f"{args.input_file.stem}_{args.font_size}_rasterized.ufo"
+    
+    rasterized_ufo.save(args.output_dir/output_file_name if args.output_dir else args.input_file.parent/output_file_name)
+
+
+
+if __name__ == "__main__":
+    main()
     

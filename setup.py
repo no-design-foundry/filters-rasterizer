@@ -7,7 +7,6 @@ setup(
     description='no design foundry – rasterizer plugin',
     author='Jan Sindler',
     author_email='jansindl3r@example.com',
-    package_data={'': ['aglfn.txt']},  # Include aglfn.txt in all packages
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -23,4 +22,9 @@ setup(
     ],
     keywords='rasterizer, plugin',
     python_requires='>=3.6',
+    entry_points={
+        'console_scripts': [
+            'rasterizer=rasterizer.rasterizer:main',
+        ],
+    },
 )
