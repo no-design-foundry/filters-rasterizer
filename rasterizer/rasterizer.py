@@ -1,7 +1,4 @@
 import freetype
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from scipy.ndimage import label
 from numpy import zeros, min as np_min, max as np_max
@@ -13,7 +10,9 @@ from math import hypot, atan2, tan
 from typing import Iterator, List, Tuple
 from functools import reduce
 from operator import add
-from defcon import Glyph
+from defcon import Glyph, Font
+from ufoLib2.objects.font import Font as Lib2Font
+from ufoLib2.objects.glyph import Glyph as Lib2Glyph
 
 
 def bits(x):
@@ -210,7 +209,7 @@ class CurrentHintedGlyph:
             pen.points.extend(shape_coordinates_offsetted)
             pen.types.extend([1]*len(shape_coordinates_offsetted))
 
-    def _draw_shapes_defcon(self, glyph, shapes, offset:int, reverse):
+    def _draw_shapes_ufo(self, glyph, shapes, offset:int, reverse):
         for shape in shapes:
             if reverse:
                 shape = reversed(shape)
@@ -227,15 +226,14 @@ class CurrentHintedGlyph:
     def draw(self, output) -> None:
         if isinstance(output, TTFont):
             pen = TTGlyphPen([])
-            self._draw_shapes(pen, self.black_shapes, self.pixel_size/2)
+            self._draw_shapes(pen, self.black_shapes, self.pixel_size/2, reverse=False)
             self._draw_shapes(pen, self.white_shapes, -self.pixel_size/2, reverse=True)
             output["glyf"][self.glyph_name] = pen.glyph()
             output["hmtx"][self.glyph_name] = (self.width, self.offset_left)
-        elif isinstance(output, Glyph):
-            output.name = self.glyph_name
+        elif isinstance(output, Glyph) or isinstance(output, Lib2Glyph):
             output.width = self.width
-            self._draw_shapes_defcon(output, self.black_shapes, self.pixel_size/2, reverse=False)
-            self._draw_shapes_defcon(output, self.white_shapes, -self.pixel_size/2, reverse=True)
+            self._draw_shapes_ufo(output, self.black_shapes, self.pixel_size/2, reverse=False)
+            self._draw_shapes_ufo(output, self.white_shapes, -self.pixel_size/2, reverse=True)
             
 
 class FontRasterizer:
@@ -254,15 +252,8 @@ class FontRasterizer:
         return iter(self.glyphs)
 
     def _get_hinted_glyph(self, glyph_name: str) -> CurrentHintedGlyph:
-        # here it falls, find out why
-        try:
-            index = self.glyph_names.index(glyph_name)
-            # problem when variable font
-            self.hinted_font.load_glyph(index, freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
-            # self.hinted_font.load_glyph(4, freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
-        except:
-            print("Load glyph failed")
-
+        index = self.glyph_names.index(glyph_name)
+        self.hinted_font.load_glyph(index, freetype.FT_LOAD_TARGET_MONO | freetype.FT_LOAD_RENDER)
         return CurrentHintedGlyph(self.hinted_font, glyph_name, self.scale_ratio, pixel_size=self.pixel_size)
 
     def rasterize_glyph(self, glyph_name: str) -> None:
@@ -270,12 +261,14 @@ class FontRasterizer:
         glyph.pixel_size = self.pixel_size
         return glyph
 
-def rasterize(ufo=None, binary_font=None, glyph_names_to_process=[], resolution=40):
+def rasterize(ufo, binary_font, glyph_names_to_process=[], resolution=40, tt_font=None):
     # assert (ufo or binary_font) and not (ufo and binary_font) and (not ufo and not binary_font)
     ufo.info.unitsPerEm = ufo.info.unitsPerEm
     binary_font.seek(0)
     hinted_font = freetype.Face(binary_font)
-    glyph_names = ufo.glyphOrder
+    if not tt_font:
+        tt_font = TTFont(binary_font)
+    glyph_names = tt_font.getGlyphOrder()
     try:
         x_height = ufo.info.xHeight
     except AttributeError:
@@ -296,10 +289,8 @@ def rasterize(ufo=None, binary_font=None, glyph_names_to_process=[], resolution=
 
 def main():
     from extractor import extractUFO
-    from defcon import Font
     from pathlib import Path
     import argparse
-    ufo = Font()
 
     parser = argparse.ArgumentParser(description="Rasterize font glyphs and kerning.")
     parser.add_argument("input_file", type=Path, help="Path to the input font file.")
@@ -309,16 +300,17 @@ def main():
 
     args = parser.parse_args()
     
+    ufo = Font()
+    
     binary_font = open(args.input_file, "rb")
     input_file = args.input_file
     font_size = args.font_size
     glyph_names_to_process = args.glyph_names if args.glyph_names else ufo.glyphOrder
     output_dir = args.output_dir
     
-    ufo = Font()
     extractUFO(input_file, ufo)
 
-    rasterized_ufo = rasterize(ufo=ufo, binary_font=binary_font, glyph_names_to_process=glyph_names_to_process, resolution=font_size)
+    rasterized_ufo = rasterize(ufo, binary_font, glyph_names_to_process=glyph_names_to_process, resolution=font_size)
     output_file_name = f"{input_file.stem}_{font_size}_rasterized.ufo"
     rasterized_ufo.save(output_dir/output_file_name if output_dir else input_file.parent/output_file_name)
 
