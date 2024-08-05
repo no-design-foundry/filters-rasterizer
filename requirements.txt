@@ -3,13 +3,13 @@ Brotli==1.1.0
 cffi==1.16.0
 defcon==0.10.3
 fontFeatures==1.8.0
-fonttools==4.53.1
+fonttools==4.51.0
 freetype-py==2.4.0
 fs==2.4.16
-lxml==5.2.2
+lxml==5.2.1
 numpy==2.0.1
 pycparser==2.22
-scipy==1.14.0
+scipy==1.13.0
 setuptools==72.1.0
 six==1.16.0
 ufo-extractor==0.6.0
