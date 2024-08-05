@@ -306,21 +306,21 @@ def main():
     parser.add_argument("font_size", type=int, help="Font size of the rasterized font.")
     parser.add_argument("--output_dir", "-o", type=Path, help="Path to the output file. If not provided, the output will be saved in the same directory as the input file.")
     parser.add_argument("--glyph_names", "-g", type=str, nargs="+", help="List of glyph names to process. If not provided, all glyphs will be processed.")
-    
+
     args = parser.parse_args()
-
+    
     binary_font = open(args.input_file, "rb")
-    ufo = Font()
-
-    extractUFO(args.input_file, ufo)
-
+    input_file = args.input_file
+    font_size = args.font_size
     glyph_names_to_process = args.glyph_names if args.glyph_names else ufo.glyphOrder
+    output_dir = args.output_dir
     
-    rasterized_ufo = rasterize(ufo=ufo, binary_font=binary_font, glyph_names_to_process=glyph_names_to_process, resolution=args.font_size)
+    ufo = Font()
+    extractUFO(input_file, ufo)
 
-    output_file_name = f"{args.input_file.stem}_{args.font_size}_rasterized.ufo"
-    
-    rasterized_ufo.save(args.output_dir/output_file_name if args.output_dir else args.input_file.parent/output_file_name)
+    rasterized_ufo = rasterize(ufo=ufo, binary_font=binary_font, glyph_names_to_process=glyph_names_to_process, resolution=font_size)
+    output_file_name = f"{input_file.stem}_{font_size}_rasterized.ufo"
+    rasterized_ufo.save(output_dir/output_file_name if output_dir else input_file.parent/output_file_name)
 
 
 
