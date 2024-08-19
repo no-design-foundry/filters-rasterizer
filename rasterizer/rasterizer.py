@@ -14,7 +14,6 @@ from defcon import Glyph, Font
 from ufoLib2.objects.font import Font as Lib2Font
 from ufoLib2.objects.glyph import Glyph as Lib2Glyph
 
-
 def bits(x):
     data = []
     for i in range(8):
@@ -278,8 +277,8 @@ def rasterize(ufo, binary_font, glyph_names_to_process=[], resolution=40, tt_fon
         glyph_names_to_process = glyph_names
 
     for glyph_name in glyph_names_to_process:
-        glyph = ufo[glyph_name]
-        if len(glyph) > 0:
+        glyph = ufo.get(glyph_name)
+        if glyph and len(glyph) > 0:
             rasterized_glyph = rasterized_font.rasterize_glyph(glyph_name)
             glyph.clearContours()
             rasterized_glyph.draw(glyph)
