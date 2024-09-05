@@ -1,9 +1,5 @@
 from setuptools import setup, find_packages
 
-def parse_requirements(filename):
-    with open(filename, 'r') as file:
-        return file.read().splitlines()
-
 setup(
     name='rasterizer',
     version='0.1',
@@ -26,7 +22,16 @@ setup(
     ],
     keywords='rasterizer, plugin',
     python_requires='>=3.6',
-    install_requires=parse_requirements('requirements.txt'),
+    install_requires=[
+        'numpy',
+        'scipy',
+        'freetype-py',
+        'fonttools',
+        'defcon',
+        'fontFeatures',
+        'ufoLib2',
+        'ufo-extractor'
+    ],
     entry_points={
         'console_scripts': [
             'rasterizer=rasterizer.rasterizer:main',

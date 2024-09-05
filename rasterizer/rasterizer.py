@@ -299,7 +299,7 @@ def main():
 
     args = parser.parse_args()
     
-    ufo = Font()
+    ufo = Lib2Font()
     
     binary_font = open(args.input_file, "rb")
     input_file = args.input_file
