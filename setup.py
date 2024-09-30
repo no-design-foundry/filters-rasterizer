@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='rasterizer',
+    name='ndf_rasterizer',
     version='0.1',
     packages=find_packages(),
     description='no design foundry – rasterizer plugin',
@@ -20,7 +20,7 @@ setup(
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
     ],
-    keywords='rasterizer, plugin',
+    keywords='nodesignfoundry, rasterizer, plugin',
     python_requires='>=3.6',
     install_requires=[
         'numpy',
@@ -34,7 +34,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'rasterizer=rasterizer.rasterizer:main',
+            'ndf_rasterizer=rasterizer.rasterizer:main',
         ],
     },
 )
