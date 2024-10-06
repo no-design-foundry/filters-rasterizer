@@ -27,7 +27,6 @@ setup(
         'scipy',
         'freetype-py',
         'fonttools',
-        'defcon',
         'fontFeatures',
         'ufoLib2',
         'ufo-extractor'

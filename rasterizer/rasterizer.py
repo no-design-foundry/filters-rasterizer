@@ -10,9 +10,8 @@ from math import hypot, atan2, tan
 from typing import Iterator, List, Tuple
 from functools import reduce
 from operator import add
-from defcon import Glyph, Font
-from ufoLib2.objects.font import Font as Lib2Font
-from ufoLib2.objects.glyph import Glyph as Lib2Glyph
+from ufoLib2.objects.glyph import Glyph
+from ufoLib2.objects.font import Font
 
 def bits(x):
     data = []
@@ -229,7 +228,7 @@ class CurrentHintedGlyph:
             self._draw_shapes(pen, self.white_shapes, -self.pixel_size/2, reverse=True)
             output["glyf"][self.glyph_name] = pen.glyph()
             output["hmtx"][self.glyph_name] = (self.width, self.offset_left)
-        elif isinstance(output, Glyph) or isinstance(output, Lib2Glyph):
+        elif isinstance(output, Glyph):
             output.width = self.width
             self._draw_shapes_ufo(output, self.black_shapes, self.pixel_size/2, reverse=False)
             self._draw_shapes_ufo(output, self.white_shapes, -self.pixel_size/2, reverse=True)
@@ -299,7 +298,7 @@ def main():
 
     args = parser.parse_args()
     
-    ufo = Lib2Font()
+    ufo = Font()
     
     binary_font = open(args.input_file, "rb")
     input_file = args.input_file
