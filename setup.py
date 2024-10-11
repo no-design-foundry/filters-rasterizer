@@ -5,6 +5,7 @@ setup(
     version='0.1.1',
     packages=find_packages(),
     description='no design foundry – rasterizer plugin',
+    long_description='Rasterizer plugin of no design foundry, it rasterizes a font and turns into a font.',
     author='Jan Sindler',
     author_email='jansindl3r@example.com',
     classifiers=[
