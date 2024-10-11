@@ -3,7 +3,6 @@ import freetype
 from scipy.ndimage import label
 from numpy import zeros, min as np_min, max as np_max
 from fontTools.ttLib import TTFont
-from .rasterize_kerning import rasterize_ufo_kerning
 from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fractions import Fraction
 from math import hypot, atan2, tan
@@ -12,6 +11,12 @@ from functools import reduce
 from operator import add
 from ufoLib2.objects.glyph import Glyph
 from ufoLib2.objects.font import Font
+
+try:
+    from .rasterize_kerning import rasterize_ufo_kerning
+except ImportError:
+    from rasterize_kerning import rasterize_ufo_kerning
+
 
 def bits(x):
     data = []
@@ -295,6 +300,7 @@ def main():
     parser.add_argument("font_size", type=int, help="Font size of the rasterized font.")
     parser.add_argument("--output_dir", "-o", type=Path, help="Path to the output file. If not provided, the output will be saved in the same directory as the input file.")
     parser.add_argument("--glyph_names", "-g", type=str, nargs="+", help="List of glyph names to process. If not provided, all glyphs will be processed.")
+    parser.add_argument("--no-features", "-nf", action="store_true", default=False, help="If set, the features will not be extracted.")
 
     args = parser.parse_args()
     
@@ -306,7 +312,7 @@ def main():
     glyph_names_to_process = args.glyph_names if args.glyph_names else ufo.glyphOrder
     output_dir = args.output_dir
     
-    extractUFO(input_file, ufo)
+    extractUFO(input_file, ufo, doFeatures=not args.no_features)
 
     rasterized_ufo = rasterize(ufo, binary_font, glyph_names_to_process=glyph_names_to_process, resolution=font_size)
     output_file_name = f"{input_file.stem}_{font_size}_rasterized.ufo"

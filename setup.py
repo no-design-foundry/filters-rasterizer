@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ndf_rasterizer',
-    version='0.1',
+    version='0.1.1',
     packages=find_packages(),
     description='no design foundry – rasterizer plugin',
     author='Jan Sindler',
