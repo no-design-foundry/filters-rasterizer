@@ -1,13 +1,16 @@
 from fontTools.ttLib.ttFont import TTFont
 from math import ceil
 
+
 def kerning_indexes(tt_font):
     for feature in tt_font["GPOS"].table.FeatureList.FeatureRecord:
         if feature.FeatureTag == "kern":
             return feature.Feature.LookupListIndex
 
+
 def round_XAdvance(Value1, pixel_size):
     Value1.XAdvance = round_value(Value1.XAdvance, pixel_size)
+
 
 def round_value(value, pixel_size):
     return ceil(value / pixel_size) * pixel_size
@@ -18,6 +21,7 @@ def update_format_1_subtable(sub_table, pixel_size):
     for index, pair in enumerate(sub_table.PairSet):
         for record in pair.PairValueRecord:
             round_XAdvance(record.Value1, pixel_size)
+
 
 def update_format_2_subtable(sub_table, pixel_size):
     classes_1 = kern_class(sub_table.ClassDef1.classDefs)
@@ -33,13 +37,15 @@ def update_format_2_subtable(sub_table, pixel_size):
                     for glyph_2 in classes_2[index_2]:
                         round_XAdvance(class_2.Value1, pixel_size)
 
+
 def kern_class(class_definition):
     classes = {}
-    for glyph,idx in class_definition.items():
+    for glyph, idx in class_definition.items():
         if idx not in classes:
             classes[idx] = []
         classes[idx].append(glyph)
     return classes
+
 
 def rasterize_kerning(tt_font, pixel_size):
     try:
@@ -53,6 +59,7 @@ def rasterize_kerning(tt_font, pixel_size):
                     update_format_2_subtable(sub_table, pixel_size)
     except Exception as e:
         print(e)
+
 
 def rasterize_ufo_kerning(ufo, pixel_size):
     for key, value in [i for i in ufo.kerning.items()]:
