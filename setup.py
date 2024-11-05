@@ -30,7 +30,7 @@ setup(
         'fonttools',
         'fontFeatures',
         'ufoLib2',
-        'ufo-extractor'
+        'ufo-extractor>=0.8.1'
     ],
     entry_points={
         'console_scripts': [
