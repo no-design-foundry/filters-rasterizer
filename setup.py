@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='ndf_rasterizer',
-    version='0.1.1',
+    version='0.1.2',
     packages=find_packages(),
     description='no design foundry – rasterizer plugin',
     long_description='Rasterizer plugin of no design foundry, it rasterizes a font and turns into a font.',
     author='Jan Sindler',
-    author_email='jansindl3r@example.com',
+    author_email='mail@jansindler.com',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -30,7 +30,7 @@ setup(
         'fonttools',
         'fontFeatures',
         'ufoLib2',
-        'ufo-extractor'
+        'ufo-extractor>=0.8.1'
     ],
     entry_points={
         'console_scripts': [
